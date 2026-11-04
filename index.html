@@ -1,0 +1,1481 @@
+<title>PickleCheck</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23dff23a'/%3E%3Cg fill='%230f1923'%3E%3Ccircle cx='16' cy='16' r='2.3'/%3E%3Ccircle cx='16' cy='7.6' r='2.05'/%3E%3Ccircle cx='23.3' cy='11.8' r='2.05'/%3E%3Ccircle cx='23.3' cy='20.2' r='2.05'/%3E%3Ccircle cx='16' cy='24.4' r='2.05'/%3E%3Ccircle cx='8.7' cy='20.2' r='2.05'/%3E%3Ccircle cx='8.7' cy='11.8' r='2.05'/%3E%3C/g%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #f1f4f6;
+    --text: #0f1923;
+    --muted: #4a5a68;
+    --faint: #8796a3;
+    --border: #dde3ea;
+    --accent: #3f9f43;
+    --accent-strong: #2e7d32;
+    --accent-soft: #e8f5e9;
+    --on-accent: #ffffff;
+    --header-bg: #0f1923;
+    --header-text: #ffffff;
+    --chip-active-bg: #0f1923;
+    --chip-active-text: #ffffff;
+    --quiet-bg: #e8f5e9;   --quiet-fg: #2e7d32;
+    --mod-bg: #fff8e1;     --mod-fg: #a85c00;
+    --busy-bg: #fce4ec;    --busy-fg: #b71c1c;
+    --none-bg: #eceff1;    --none-fg: #546e7a;
+    --priv-bg: #ede7f6;    --priv-fg: #5e35b1;
+    --stale-bg: #fff6e0;   --stale-border: #f2dfae; --stale-fg: #8a6116; --stale-card: #fffdf6;
+    --fill-low: #4caf50;
+    --fill-med: #f9a825;
+    --fill-high: #e53935;
+    --shadow: 0 4px 24px rgba(15,25,35,0.08);
+    --shadow-hover: 0 6px 28px rgba(15,25,35,0.13);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0d141a;
+      --surface: #16212b;
+      --surface-2: #1d2a35;
+      --text: #e8eef3;
+      --muted: #a2b2bf;
+      --faint: #6f8191;
+      --border: #2a3a47;
+      --accent: #56b95b;
+      --accent-strong: #86d48a;
+      --accent-soft: #1b3320;
+      --on-accent: #08130a;
+      --header-bg: #0a1015;
+      --header-text: #eef3f6;
+      --chip-active-bg: #e8eef3;
+      --chip-active-text: #0f1923;
+      --quiet-bg: #17331c;   --quiet-fg: #8fdc94;
+      --mod-bg: #3a2e0e;     --mod-fg: #f5c451;
+      --busy-bg: #3d1719;    --busy-fg: #ff9a9a;
+      --none-bg: #22303b;    --none-fg: #a9b8c4;
+      --priv-bg: #2a2240;    --priv-fg: #c3b0f5;
+      --stale-bg: #2c2614;   --stale-border: #5a4a1e; --stale-fg: #f0cf7a; --stale-card: #1c1d18;
+      --fill-low: #56b95b;
+      --fill-med: #e6a52a;
+      --fill-high: #e5534f;
+      --shadow: 0 4px 24px rgba(0,0,0,0.35);
+      --shadow-hover: 0 6px 28px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0d141a;
+    --surface: #16212b;
+    --surface-2: #1d2a35;
+    --text: #e8eef3;
+    --muted: #a2b2bf;
+    --faint: #6f8191;
+    --border: #2a3a47;
+    --accent: #56b95b;
+    --accent-strong: #86d48a;
+    --accent-soft: #1b3320;
+    --on-accent: #08130a;
+    --header-bg: #0a1015;
+    --header-text: #eef3f6;
+    --chip-active-bg: #e8eef3;
+    --chip-active-text: #0f1923;
+    --quiet-bg: #17331c;   --quiet-fg: #8fdc94;
+    --mod-bg: #3a2e0e;     --mod-fg: #f5c451;
+    --busy-bg: #3d1719;    --busy-fg: #ff9a9a;
+    --none-bg: #22303b;    --none-fg: #a9b8c4;
+    --priv-bg: #2a2240;    --priv-fg: #c3b0f5;
+    --stale-bg: #2c2614;   --stale-border: #5a4a1e; --stale-fg: #f0cf7a; --stale-card: #1c1d18;
+    --fill-low: #56b95b;
+    --fill-med: #e6a52a;
+    --fill-high: #e5534f;
+    --shadow: 0 4px 24px rgba(0,0,0,0.35);
+    --shadow-hover: 0 6px 28px rgba(0,0,0,0.5);
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  button, select, input, textarea { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 0 24px;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.15rem; letter-spacing: -0.5px; }
+  .logo-ball { width: 30px; height: 30px; flex-shrink: 0; display: block; filter: drop-shadow(0 2px 7px rgba(215,242,58,0.4)); }
+  .logo span { color: #6fd173; }
+  .sync {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.72rem; font-weight: 600; color: #b8c6d1;
+  }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #6f8191; flex-shrink: 0; }
+  .sync.live .sync-dot { background: #6fd173; box-shadow: 0 0 0 3px rgba(111,209,115,0.2); }
+  .sync.local .sync-dot { background: #f5c451; }
+
+  /* ── TAB NAV ── */
+  nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .tab-btn {
+    flex: 1; padding: 14px 0; font-size: 0.85rem; font-weight: 600; color: var(--muted);
+    background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s; letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .tab-btn.active { color: var(--accent-strong); border-bottom-color: var(--accent); }
+
+  /* ── MAIN ── */
+  main { max-width: 520px; margin: 0 auto; padding: 24px 16px 60px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .card-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .page-title { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; text-wrap: balance; }
+  .page-sub { font-size: 0.88rem; color: var(--muted); margin-bottom: 20px; }
+
+  /* ── TOWN PICKER ── */
+  .town-card {
+    background: var(--surface); border-radius: var(--radius); padding: 22px 20px; margin-bottom: 14px;
+    box-shadow: var(--shadow); border: 1px solid var(--border); cursor: pointer;
+    display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; color: inherit; font: inherit;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+  .town-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+  .town-icon {
+    width: 52px; height: 52px; flex-shrink: 0; border-radius: 14px; background: var(--accent-soft);
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+  }
+  .town-body { flex: 1; min-width: 0; }
+  .town-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.3px; }
+  .town-meta { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+  .town-pills { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+  .mini-pill { font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.2px; }
+  .pill-quiet { background: var(--quiet-bg); color: var(--quiet-fg); }
+  .pill-moderate { background: var(--mod-bg); color: var(--mod-fg); }
+  .pill-busy { background: var(--busy-bg); color: var(--busy-fg); }
+  .pill-none { background: var(--none-bg); color: var(--none-fg); }
+  .town-arrow { font-size: 1.3rem; color: var(--muted); flex-shrink: 0; }
+  .data-note {
+    font-size: 0.72rem; line-height: 1.5; color: var(--muted); background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 20px;
+  }
+
+  /* ── FORM CONTROLS ── */
+  .court-select {
+    width: 100%; padding: 12px 40px 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 1rem; font-weight: 500; color: var(--text); background-color: var(--surface-2);
+    appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238796a3' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  .court-select:focus { outline: none; border-color: var(--accent); }
+  .court-select:disabled { opacity: 0.55; cursor: not-allowed; }
+  .select-hint { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+  .select-hint.warn { color: var(--stale-fg); font-weight: 600; }
+  .text-input {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 1rem; font-weight: 500; color: var(--text); background: var(--surface-2);
+  }
+  .text-input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .text-input::placeholder, textarea::placeholder { color: var(--faint); font-weight: 400; }
+  .sub-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 16px 0 8px; }
+  .combo { position: relative; }
+  .suggest {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 20;
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-hover); max-height: 280px; overflow-y: auto; padding: 6px;
+  }
+  .suggest-item {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; width: 100%;
+    padding: 10px 12px; border: none; border-radius: 8px; background: none; color: var(--text);
+    font-size: 0.92rem; font-weight: 600; text-align: left; cursor: pointer;
+  }
+  .suggest-item .meta { font-size: 0.75rem; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .suggest-item:hover, .suggest-item.active { background: var(--accent-soft); color: var(--accent-strong); }
+  .suggest-item.add { color: var(--accent-strong); }
+  .suggest-label {
+    padding: 8px 12px 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .dym { display: block; margin-top: 6px; }
+  .dym-btn {
+    background: none; border: none; padding: 0; font: inherit; font-weight: 700; color: inherit;
+    text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+  }
+  .suggest-empty { padding: 10px 12px; font-size: 0.82rem; color: var(--muted); }
+  .picked {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px;
+    padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--accent-strong);
+    font-size: 0.82rem; font-weight: 600;
+  }
+  .picked.new { background: var(--stale-bg); color: var(--stale-fg); }
+
+  .busyness-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .busyness-label .q { font-size: 0.95rem; font-weight: 600; }
+  .busyness-label .val { font-size: 1.4rem; font-weight: 900; color: var(--accent-strong); }
+  .slider-track { position: relative; margin-bottom: 8px; }
+  input[type=range] {
+    width: 100%; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 4px;
+    background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill, 50%), var(--border) var(--fill, 50%), var(--border) 100%);
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--surface); border: 3px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer; transition: transform 0.1s;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 3px solid var(--accent); cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb:active { transform: scale(1.15); }
+  input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+
+  .rotation-row { display: flex; align-items: center; gap: 12px; }
+  .rotation-q { font-size: 0.95rem; font-weight: 600; flex: 1; }
+  .stepper { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .stepper button {
+    width: 40px; height: 40px; background: var(--surface-2); border: none; font-size: 1.3rem; font-weight: 700;
+    color: var(--muted); cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center;
+  }
+  .stepper button:hover { background: var(--accent-soft); color: var(--accent-strong); }
+  .stepper .count {
+    width: 48px; text-align: center; font-size: 1.1rem; font-weight: 700;
+    border-left: 1.5px solid var(--border); border-right: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text); height: 40px; line-height: 40px;
+  }
+
+  .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    padding: 9px 18px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; background: var(--surface); color: var(--muted); transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent-strong); }
+  .chip.selected { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  textarea {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem;
+    color: var(--text); background: var(--surface-2); resize: none; height: 80px;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+
+  .submit-btn {
+    width: 100%; padding: 16px; background: var(--accent); color: var(--on-accent); border: none; border-radius: var(--radius);
+    font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 0.3px;
+    transition: filter 0.2s, transform 0.1s; box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+  }
+  .submit-btn:hover { filter: brightness(0.92); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.6; cursor: progress; }
+
+  .success-msg { text-align: center; padding: 32px 24px; }
+  .success-msg .icon { margin-bottom: 12px; }
+  .big-icon { width: 68px; height: 68px; display: inline-block; filter: drop-shadow(0 3px 8px rgba(15,25,35,0.16)); }
+  .success-msg h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+  .success-msg p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+  .success-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .success-actions .submit-btn { width: auto; padding: 14px 22px; }
+  .ghost-btn {
+    padding: 14px 22px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text); font-weight: 700; font-size: 1rem; cursor: pointer;
+  }
+  .ghost-btn:hover { border-color: var(--accent); color: var(--accent-strong); }
+
+  /* ── FILTERS ── */
+  .filter-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .court-filter { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+  .court-filter::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 7px 16px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; background: var(--surface); color: var(--muted); white-space: nowrap; transition: all 0.15s;
+  }
+  .filter-chip.active { background: var(--chip-active-bg); border-color: var(--chip-active-bg); color: var(--chip-active-text); }
+  .result-count { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; font-weight: 500; }
+
+  /* ── COURT CARD ── */
+  .court-card {
+    background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 12px;
+    box-shadow: var(--shadow); border: 1px solid var(--border); cursor: pointer; display: block; width: 100%;
+    text-align: left; color: inherit; font: inherit;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+  .court-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+  .court-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .court-name { font-size: 1rem; font-weight: 700; }
+  .court-location { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .status-badge { padding: 5px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+  .status-quiet { background: var(--quiet-bg); color: var(--quiet-fg); }
+  .status-moderate { background: var(--mod-bg); color: var(--mod-fg); }
+  .status-busy { background: var(--busy-bg); color: var(--busy-fg); }
+  .status-unreported { background: var(--none-bg); color: var(--none-fg); }
+  .card-hint { font-size: 0.82rem; color: var(--muted); }
+
+  .is-stale { border-color: var(--stale-border); background: var(--stale-card); }
+  .is-stale .status-badge { filter: saturate(0.45); }
+  .is-stale .meter-fill { opacity: 0.5; }
+  .is-stale .stat-val, .is-stale .court-name, .is-stale .detail-name { color: var(--muted); }
+  .stale-banner {
+    font-size: 0.75rem; font-weight: 600; line-height: 1.45; color: var(--stale-fg); background: var(--stale-bg);
+    border: 1px solid var(--stale-border); border-radius: 9px; padding: 8px 11px; margin-bottom: 12px;
+  }
+
+  .access-tag { display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; margin-top: 7px; }
+  .access-public { background: var(--accent-soft); color: var(--accent-strong); }
+  .access-private { background: var(--priv-bg); color: var(--priv-fg); }
+  .access-added { background: var(--none-bg); color: var(--none-fg); margin-left: 4px; }
+
+  .meter-wrap { margin-bottom: 14px; }
+  .meter-top { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+  .meter-bar { height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .meter-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
+  .fill-low { background: var(--fill-low); }
+  .fill-med { background: var(--fill-med); }
+  .fill-high { background: var(--fill-high); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .stat-box { background: var(--surface-2); border-radius: 10px; padding: 10px 8px; text-align: center; }
+  .stat-val { font-size: 1.2rem; font-weight: 900; color: var(--text); }
+  .stat-lbl { font-size: 0.65rem; color: var(--muted); font-weight: 600; margin-top: 2px; letter-spacing: 0.3px; text-transform: uppercase; }
+  .timestamp { font-size: 0.72rem; color: var(--muted); margin-top: 8px; }
+  .note-line { font-size: 0.8rem; color: var(--muted); padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; overflow-wrap: anywhere; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.9rem; }
+
+  .refresh-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; }
+
+  .toast {
+    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
+    transform: translateX(-50%) translateY(120px); background: var(--header-bg); color: var(--header-text);
+    padding: 12px 24px; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: transform 0.3s ease; z-index: 999;
+    max-width: calc(100vw - 32px); text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: var(--muted);
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 8px;
+  }
+  .back-btn:hover { color: var(--accent-strong); }
+
+  .detail-hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+  .detail-name { font-size: 1.35rem; font-weight: 900; letter-spacing: -0.3px; line-height: 1.2; text-wrap: balance; }
+  .detail-location { font-size: 0.85rem; color: var(--muted); margin-top: 5px; }
+  .detail-note-box { font-size: 0.85rem; color: var(--muted); padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; overflow-wrap: anywhere; }
+  .info-row { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 0.87rem; }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: var(--muted); font-weight: 500; flex-shrink: 0; }
+  .info-val { font-weight: 700; text-align: right; }
+  .unreported-block { text-align: center; padding: 20px 8px 8px; }
+  .unreported-block .icon { margin-bottom: 10px; }
+  .unreported-block .big-icon { width: 56px; height: 56px; }
+  .unreported-block p { color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; line-height: 1.5; }
+
+  @media (max-width: 480px) {
+    header { padding: 0 16px; }
+    nav { padding: 0 16px; }
+    .card { padding: 18px; }
+    .tab-btn { font-size: 0.78rem; }
+    .sync-text { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="paddleGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#66c46a" />
+      <stop offset="100%" stop-color="#2e7d32" />
+    </linearGradient>
+    <radialGradient id="ballGrad2" cx="35%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#f2ff7a" />
+      <stop offset="55%" stop-color="#dff23a" />
+      <stop offset="100%" stop-color="#b9d117" />
+    </radialGradient>
+    <g id="paddleBall">
+      <g transform="rotate(-16 24 30)">
+        <rect x="18.5" y="38" width="11" height="22" rx="4" fill="#1c2b38" />
+        <g stroke="#0f1923" stroke-opacity="0.45" stroke-width="1.5" stroke-linecap="round">
+          <line x1="20" y1="45" x2="28" y2="45" />
+          <line x1="20" y1="49.5" x2="28" y2="49.5" />
+          <line x1="20" y1="54" x2="28" y2="54" />
+        </g>
+        <rect x="6" y="2" width="36" height="41" rx="10" fill="url(#paddleGrad)" stroke="#1f5e23" stroke-width="2" />
+        <rect x="10" y="6" width="28" height="33" rx="7" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="1.4" />
+        <path d="M13 13a10 10 0 0 1 6.5-6" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2.6" stroke-linecap="round" />
+      </g>
+      <circle cx="50" cy="47" r="12" fill="url(#ballGrad2)" stroke="#8fa30f" stroke-opacity="0.6" stroke-width="1.2" />
+      <g fill="#0f1923" fill-opacity="0.75">
+        <circle cx="50" cy="47" r="1.9" />
+        <circle cx="50" cy="40.4" r="1.7" />
+        <circle cx="55.7" cy="43.7" r="1.7" />
+        <circle cx="55.7" cy="50.3" r="1.7" />
+        <circle cx="50" cy="53.6" r="1.7" />
+        <circle cx="44.3" cy="50.3" r="1.7" />
+        <circle cx="44.3" cy="43.7" r="1.7" />
+      </g>
+    </g>
+  </defs>
+</svg>
+
+<header>
+  <div class="logo">
+    <svg class="logo-ball" viewBox="0 0 32 32" role="img" aria-label="Pickleball">
+      <defs>
+        <radialGradient id="ballGrad" cx="35%" cy="30%" r="78%">
+          <stop offset="0%" stop-color="#f2ff7a" />
+          <stop offset="55%" stop-color="#dff23a" />
+          <stop offset="100%" stop-color="#b9d117" />
+        </radialGradient>
+      </defs>
+      <circle cx="16" cy="16" r="15" fill="url(#ballGrad)" />
+      <g fill="#0f1923" fill-opacity="0.78">
+        <circle cx="16" cy="16" r="2.3" />
+        <circle cx="16" cy="7.6" r="2.05" />
+        <circle cx="23.3" cy="11.8" r="2.05" />
+        <circle cx="23.3" cy="20.2" r="2.05" />
+        <circle cx="16" cy="24.4" r="2.05" />
+        <circle cx="8.7" cy="20.2" r="2.05" />
+        <circle cx="8.7" cy="11.8" r="2.05" />
+      </g>
+      <path d="M6.6 10.4a11.2 11.2 0 0 1 6.6-5.6" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2.2" stroke-linecap="round" />
+      <circle cx="16" cy="16" r="14.4" fill="none" stroke="#8fa30f" stroke-opacity="0.55" stroke-width="1.2" />
+    </svg>
+    Pickle<span>Check</span>
+  </div>
+  <div class="sync" id="sync" title="Connecting…">
+    <span class="sync-dot"></span><span class="sync-text" id="sync-text">Connecting…</span>
+  </div>
+</header>
+
+<nav>
+  <button class="tab-btn" data-tab="report" onclick="switchTab('report')">📋 Report Courts</button>
+  <button class="tab-btn active" data-tab="towns" onclick="switchTab('towns')">📊 Check Courts</button>
+</nav>
+
+<main>
+  <!-- ══ REPORT VIEW ══ -->
+  <div class="view" id="view-report">
+    <div id="form-wrap">
+      <div class="card">
+        <div class="card-title">Where are you playing?</div>
+        <div class="sub-label" style="margin-top:0;">1 · Choose your town</div>
+        <select class="court-select" id="town-select" onchange="onTownSelected()">
+          <option value="">— Select a town —</option>
+          <option value="Apex">Apex</option>
+          <option value="Cary">Cary</option>
+          <option value="Morrisville">Morrisville</option>
+        </select>
+        <div class="sub-label">2 · Type the courts</div>
+        <div class="combo">
+          <input type="text" class="text-input" id="court-input" maxlength="60" autocomplete="off" spellcheck="false"
+                 placeholder="Start typing, e.g. McCrimmon" role="combobox" aria-autocomplete="list"
+                 aria-expanded="false" aria-controls="court-suggest" />
+          <div class="suggest" id="court-suggest" role="listbox" hidden></div>
+        </div>
+        <div class="select-hint" id="court-hint">Type a park, club, or neighborhood name.</div>
+        <div id="picked"></div>
+        <div id="other-wrap" hidden>
+          <div class="sub-label">How many courts does it have?</div>
+          <div class="rotation-row">
+            <div class="rotation-q">Total courts at this location</div>
+            <div class="stepper">
+              <button type="button" aria-label="Fewer courts" onclick="changeOtherCourts(-1)">−</button>
+              <div class="count" id="other-courts">4</div>
+              <button type="button" aria-label="More courts" onclick="changeOtherCourts(1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">How busy are the courts?</div>
+        <div class="busyness-label">
+          <span class="q">Courts in use</span>
+          <span class="val" id="busy-val">5 / 10</span>
+        </div>
+        <div class="slider-track">
+          <input type="range" id="busy-slider" min="0" max="10" value="5" aria-label="Courts in use"
+                 oninput="updateSlider(this)" style="--fill:50%" />
+        </div>
+        <div class="slider-labels">
+          <span>Empty 🟢</span>
+          <span>Half full 🟡</span>
+          <span>Packed 🔴</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Rotation wait time</div>
+        <div class="rotation-row">
+          <div class="rotation-q">People waiting in rotation</div>
+          <div class="stepper">
+            <button type="button" aria-label="Fewer people" onclick="changeCount(-1)">−</button>
+            <div class="count" id="rotation-count">0</div>
+            <button type="button" aria-label="More people" onclick="changeCount(1)">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Estimated wait to play</div>
+        <div class="chip-row" id="wait-chips">
+          <button type="button" class="chip" onclick="selectChip(this)">No wait</button>
+          <button type="button" class="chip" onclick="selectChip(this)">~5 min</button>
+          <button type="button" class="chip" onclick="selectChip(this)">~10 min</button>
+          <button type="button" class="chip" onclick="selectChip(this)">~20 min</button>
+          <button type="button" class="chip" onclick="selectChip(this)">30+ min</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Anything else to note? (optional)</div>
+        <textarea id="notes" maxlength="280" placeholder="e.g. courts are wet, lots of beginners, open play ends at 8pm…"></textarea>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="submitReport()">✅ Submit Court Report</button>
+    </div>
+    <div class="success-msg" id="success-msg" hidden>
+      <div class="icon"><svg class="big-icon" viewBox="0 0 64 64" role="img" aria-label="Pickleball paddle and ball"><use href="#paddleBall"/></svg></div>
+      <h2>Thanks for the report!</h2>
+      <p id="success-text">Everyone checking PickleCheck can see it now.</p>
+      <div class="success-actions">
+        <button class="submit-btn" onclick="viewReportedCourt()">See the court</button>
+        <button class="ghost-btn" onclick="resetForm()">Report another</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TOWN PICKER VIEW ══ -->
+  <div class="view active" id="view-towns">
+    <div class="page-title">Pick a location</div>
+    <div class="page-sub">Choose a town to see its pickleball courts and live status from other players.</div>
+    <div id="town-list"></div>
+    <div class="data-note">
+      Court counts verified August 2026 against the Apex, Cary and Morrisville
+      parks departments, with facility operators' own sites for private clubs.
+      Public parks are free and first-come; private courts need a membership or residency.
+      Reports are trusted for 45 minutes, flagged until 3 hours, then hidden.
+    </div>
+  </div>
+
+  <!-- ══ COURT LIST VIEW ══ -->
+  <div class="view" id="view-courts">
+    <button class="back-btn" onclick="backToTowns()">← Back to locations</button>
+    <div class="page-title" id="courts-town-title">Courts</div>
+    <div class="page-sub" id="courts-town-sub"></div>
+    <div class="refresh-bar"><span id="last-updated"></span></div>
+    <div class="filter-label">Access</div>
+    <div class="court-filter" id="access-filter">
+      <button type="button" class="filter-chip active" onclick="filterAccess(this, 'all')">All</button>
+      <button type="button" class="filter-chip" onclick="filterAccess(this, 'public')">🏛️ Public</button>
+      <button type="button" class="filter-chip" onclick="filterAccess(this, 'private')">🔒 Private / Member</button>
+    </div>
+    <div class="filter-label">Status</div>
+    <div class="court-filter" id="court-filter">
+      <button type="button" class="filter-chip active" onclick="filterCourts(this, 'all')">All Courts</button>
+      <button type="button" class="filter-chip" onclick="filterCourts(this, 'live')">📡 Has report</button>
+      <button type="button" class="filter-chip" onclick="filterCourts(this, 'quiet')">🟢 Quiet</button>
+      <button type="button" class="filter-chip" onclick="filterCourts(this, 'moderate')">🟡 Moderate</button>
+      <button type="button" class="filter-chip" onclick="filterCourts(this, 'busy')">🔴 Busy</button>
+    </div>
+    <div class="result-count" id="result-count"></div>
+    <div id="court-list"></div>
+  </div>
+
+  <!-- ══ COURT DETAIL VIEW ══ -->
+  <div class="view" id="view-court-detail">
+    <button class="back-btn" id="detail-back" onclick="backToCourts()">← Back</button>
+    <div id="court-detail-content"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // ══════════════════════════════════════════════════════
+  //  COURT DIRECTORY — Apex, Cary & Morrisville, NC
+  //  Court counts sourced from town parks depts + Pickleheads
+  //  / Global Pickleball Network directories (Aug 2026).
+  // ══════════════════════════════════════════════════════
+  const DIRECTORY = [
+    // ───── APEX ─────
+    { name: "Pleasant Park",                 town: "Apex",        maxCourts: 6, access: "public",  info: "Outdoor · dedicated · UNLIT · sunrise–sunset · 3390 Pleasant Plains Rd" },
+    { name: "Peak Sports Apex",              town: "Apex",        maxCourts: 7, access: "private", info: "Indoor club · membership / court rental · count unconfirmed · 2126 Energy Dr" },
+    { name: "Kelly Road Park",               town: "Apex",        maxCourts: 4, access: "public",  info: "Outdoor · lighted · also used for junior tennis · 1845 Kelly Rd" },
+    { name: "Apex Nature Park & Seymour",    town: "Apex",        maxCourts: 4, access: "public",  info: "Outdoor · lighted · one site (Nature Park = Seymour Fields) · Evans Rd" },
+    { name: "Apex Elementary School",        town: "Apex",        maxCourts: 4, access: "public",  info: "Outdoor · lighted · weekends only, and after 6 pm on school days" },
+    { name: "John M. Brown Community Ctr",   town: "Apex",        maxCourts: 4, access: "public",  info: "Indoor · ages 55+ only · open-gym hours · 53 Hunter St" },
+    { name: "Apex Community Park",           town: "Apex",        maxCourts: 3, access: "public",  info: "Outdoor · lighted · dedicated courts" },
+    { name: "Middle Creek Community Ctr",    town: "Apex",        maxCourts: 3, access: "public",  info: "Indoor gym · Apex address, run by Town of Cary · reservable, fee" },
+    { name: "Kraft Family YMCA",             town: "Apex",        maxCourts: 2, access: "private", info: "Indoor gym · YMCA membership required · 8921 Holly Springs Rd" },
+    { name: "Olive Chapel Swim & Tennis",    town: "Apex",        maxCourts: 2, access: "private", info: "Outdoor · club members only · 1221 Ainsley Woods Pl" },
+    { name: "Abbington Neighborhood Courts", town: "Apex",        maxCourts: 2, access: "private", info: "Pickleball lines on a tennis court (tennis-height net) · residents only" },
+    { name: "Haddon Hall Courts",            town: "Apex",        maxCourts: 2, access: "private", info: "Outdoor · lighted · dual tennis/pickleball · HOA residents only" },
+    // ───── CARY ─────
+    { name: "Life Time — Alston Town Ctr",   town: "Cary",        maxCourts: 9, access: "private", info: "3 indoor + 6 outdoor · opened Feb 2026 · members only · 1120 Healthy Way" },
+    { name: "Taylor Family YMCA",            town: "Cary",        maxCourts: 8, access: "private", info: "6 outdoor + 2 indoor · lighted · members only · 101 YMCA Dr" },
+    { name: "McCrimmon Park",                town: "Cary",        maxCourts: 6, access: "public",  info: "Outdoor · dedicated · LIGHTED · free, first-come · 10330 Green Level Church Rd" },
+    { name: "Cary Tennis Park",              town: "Cary",        maxCourts: 4, access: "public",  info: "Outdoor · lighted · shared with youth tennis programming · pass holders can reserve" },
+    { name: "Herbert Young Community Ctr",   town: "Cary",        maxCourts: 4, access: "public",  info: "Indoor gym floor · open gym only · drop-in fee · no reservations" },
+    { name: "Kildaire Farms Racquet & Swim", town: "Cary",        maxCourts: 4, access: "private", info: "Outdoor · lighted · private club members only · 162 Pebble Creek Dr" },
+    { name: "Bond Park Community Center",    town: "Cary",        maxCourts: 3, access: "public",  info: "Indoor gym floor · open gym only · drop-in fee · no reservations" },
+    { name: "Ed Yerha Park",                 town: "Cary",        maxCourts: 3, access: "public",  info: "Outdoor · dedicated · UNLIT · free · formerly White Oak Park" },
+    { name: "Carpenter Park",                town: "Cary",        maxCourts: 3, access: "public",  info: "Outdoor · dedicated · lighted · free dawn–dusk · 4420 Louis Stephens Dr" },
+    { name: "Life Time — Cary",              town: "Cary",        maxCourts: 3, access: "private", info: "Indoor · members only · 1700 Regency Pkwy" },
+    { name: "Weatherstone H.O.A.",           town: "Cary",        maxCourts: 3, access: "private", info: "Outdoor · bring your own net · residents only (1 guest each)" },
+    { name: "Walnut Street Park",            town: "Cary",        maxCourts: 2, access: "public",  info: "Outdoor · dedicated · lighted · free" },
+    { name: "Northwest Cary YMCA",           town: "Cary",        maxCourts: 2, access: "private", info: "Indoor gym · members only · reservable · 6903 Carpenter Fire Station Rd" },
+    { name: "Amberly Residents Center",      town: "Cary",        maxCourts: 2, access: "private", info: "Residents only · reservable · 1075 Residents Club Dr" },
+    { name: "Carolina Preserve at Amberly",  town: "Cary",        maxCourts: 2, access: "private", info: "Outdoor · lighted · Del Webb 55+ community residents only" },
+    { name: "Carpenter Village Tennis Ct",   town: "Cary",        maxCourts: 1, access: "private", info: "Lines on a tennis court (tennis-height net) · HOA · reservation required" },
+    { name: "Harrison Grande Apartments",    town: "Cary",        maxCourts: 1, access: "private", info: "Outdoor · dedicated · lighted · residents only · 300 Sudbury Dr" },
+    { name: "Courtyards at Lochmere",        town: "Cary",        maxCourts: 1, access: "private", info: "Outdoor · dedicated · private · reservable · 350 Speight Branch Rd" },
+    // ───── MORRISVILLE ─────
+    { name: "NetSports",                      town: "Morrisville", maxCourts: 6, access: "private", info: "Indoor · climate controlled · pay-to-play open play · 3717 Davis Dr" },
+    { name: "Morrisville Aquatics & Fitness", town: "Morrisville", maxCourts: 4, access: "public",  info: "Outdoor · lighted · RESERVATION REQUIRED · 1301 Morrisville Pkwy" },
+    { name: "Morrisville Community Park",     town: "Morrisville", maxCourts: 3, access: "public",  info: "Outdoor · dedicated · lighted · free, 6 am–10 pm · 1520 Morrisville Pkwy" },
+    { name: "Peak Sports Morrisville",        town: "Morrisville", maxCourts: 3, access: "private", info: "Indoor · membership required · 2900 Perimeter Park Dr" }
+  ];
+
+  const TOWNS = [
+    { name: "Apex",        icon: "🌳" },
+    { name: "Cary",        icon: "🏙️" },
+    { name: "Morrisville", icon: "✈️" }
+  ];
+
+  // Stable ids so reports survive reordering or renaming the list above.
+  function slugify(s) {
+    return String(s).toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '')
+      .replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'place';
+  }
+  function courtId(town, name) { return slugify(town) + '--' + slugify(name); }
+  DIRECTORY.forEach(c => { c.id = courtId(c.town, c.name); });
+
+  // ══════════════════════════════════════════════════════
+  //  SHARED STATE
+  //  reports/<courtId>  → latest report for that location
+  //  places/<courtId>   → locations added by players
+  //  Both live in the artifact's shared db, so every player
+  //  sees every report. Without db, falls back to this tab only.
+  // ══════════════════════════════════════════════════════
+  let reports = {};   // courtId → report body
+  let places = [];    // player-added locations
+  let db = null;
+  let syncMode = 'connecting';  // 'connecting' | 'live' | 'local'
+
+  function allCourts() { return DIRECTORY.concat(places); }
+  function courtsInTown(town) { return allCourts().filter(c => c.town === town); }
+  function getCourt(id) {
+    const c = allCourts().find(x => x.id === id);
+    if (!c) return null;
+    const r = reports[id];
+    return Object.assign({ location: c.town + ', NC' }, c, r ? {
+      busyLevel: Math.min(r.busyLevel, c.maxCourts),
+      rotation: r.rotation,
+      wait: r.wait,
+      note: r.note,
+      reportedAt: r.reportedAt
+    } : { reportedAt: null });
+  }
+
+  function setSync(mode) {
+    syncMode = mode;
+    const el = document.getElementById('sync');
+    const txt = document.getElementById('sync-text');
+    el.className = 'sync ' + mode;
+    const labels = {
+      connecting: ['Connecting…', 'Connecting to shared reports'],
+      live: ['Live', 'Reports are shared with everyone using PickleCheck'],
+      local: ['This device only', 'Shared reports are unavailable here, so reports stay in this tab']
+    };
+    txt.textContent = labels[mode][0];
+    el.title = labels[mode][1];
+  }
+
+  async function connectDb() {
+    try {
+      db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    } catch (e) { db = null; }
+    if (!db) { setSync('local'); rerender(); return; }
+    setSync('live');
+    db.collection('reports').onSnapshot(snap => {
+      const next = {};
+      snap.docs.forEach(d => {
+        const v = d.data();
+        if (v && typeof v.reportedAt === 'number' && typeof v.busyLevel === 'number') next[d.id] = v;
+      });
+      reports = next;
+      rerender();
+    }, onDbError);
+    db.collection('places').onSnapshot(snap => {
+      const known = new Set(DIRECTORY.map(c => c.id));
+      places = snap.docs.map(d => {
+        const v = d.data() || {};
+        return {
+          id: d.id,
+          name: String(v.name || '').slice(0, 60),
+          town: String(v.town || ''),
+          maxCourts: Math.min(20, Math.max(1, parseInt(v.maxCourts) || 1)),
+          access: 'public',
+          info: 'Added by a player · court count not yet verified',
+          userAdded: true
+        };
+      }).filter(p => p.name && TOWNS.some(t => t.name === p.town) && !known.has(p.id));
+      rerender();
+    }, onDbError);
+  }
+
+  function onDbError(e) {
+    if (e && (e.code === 'revoked' || e.code === 'not_granted' || e.code === 'capability_disabled')) {
+      db = null;
+      setSync('local');
+    }
+  }
+
+  function dbErrorMessage(e) {
+    const code = e && e.code;
+    if (code === 'invalid_argument') return 'You have view-only access. Ask the owner for Contributor access to post reports.';
+    if (code === 'quota_exceeded') return 'The report store is full. Ask the owner to clear old locations.';
+    if (code === 'resource_exhausted') return 'Too many reports at once. Wait a minute and try again.';
+    return 'Couldn’t save the report. Check your connection and try again.';
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  REPORT FRESHNESS
+  //  A report is trusted for FRESH_MINS, shown with a warning
+  //  until EXPIRE_MINS, then dropped — a 4-hour-old report is
+  //  worse than no report, because people act on it.
+  // ══════════════════════════════════════════════════════
+  const FRESH_MINS = 45;
+  const EXPIRE_MINS = 180;
+  function minsSince(c) {
+    if (!c.reportedAt) return null;
+    return Math.max(0, (Date.now() - c.reportedAt) / 60000);
+  }
+  function isLive(c) { const m = minsSince(c); return m !== null && m < EXPIRE_MINS; }
+  function isStale(c) { const m = minsSince(c); return m !== null && m >= FRESH_MINS && m < EXPIRE_MINS; }
+  function timeAgo(c) {
+    const m = minsSince(c);
+    if (m === null) return '';
+    if (m < 1) return 'Just reported';
+    if (m < 60) return `${Math.floor(m)} min ago`;
+    const h = Math.floor(m / 60), rem = Math.floor(m % 60);
+    if (h < 24) return rem ? `${h} hr ${rem} min ago` : `${h} hr ago`;
+    const d = Math.floor(h / 24);
+    return d === 1 ? 'Yesterday' : `${d} days ago`;
+  }
+
+  let currentFilter = 'all';
+  let currentAccess = 'all';
+  let selectedTown = null;
+  let rotationCount = 0;
+  let selectedWait = '';
+  let otherCourtCount = 4;
+  let currentDetailId = null;
+  let lastReportedId = null;
+  let saving = false;
+
+  function esc(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function plural(n) { return n === 1 ? 'court' : 'courts'; }
+
+  // ══════════════════════════════════════════════════════
+  //  REPORT FORM — town first, then courts in that town
+  // ══════════════════════════════════════════════════════
+  // Court box: type a name, pick a suggestion, or add a new location.
+  let pickedId = null;     // an existing court the typed name resolves to
+  let suggestIdx = -1;     // keyboard-highlighted suggestion
+  let sliderMax = null;
+
+  function currentTown() { return document.getElementById('town-select').value; }
+  function typedName() { return document.getElementById('court-input').value.trim(); }
+  function norm(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+
+  function matchScore(c, key) {
+    const n = norm(c.name);
+    if (n === key) return 100;
+    if (n.startsWith(key)) return 80;
+    if (n.split(' ').some(w => w.startsWith(key))) return 60;
+    if (n.includes(key)) return 40;
+    if (key.split(' ').every(t => n.includes(t))) return 30;
+    return fuzzyScore(n, key);
+  }
+  const FUZZY_MAX = 29;   // scores at or below this are "did you mean" matches
+
+  // Typo distance between two words: insert, delete, swap a letter,
+  // or flip two neighbours ("pleseant" → "pleasant" is 2).
+  function editDistance(a, b) {
+    const d = [];
+    for (let i = 0; i <= a.length; i++) d[i] = [i];
+    for (let j = 0; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+          d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+        }
+      }
+    }
+    return d[a.length][b.length];
+  }
+  // Longer words tolerate more typos.
+  function typoAllowance(len) { return len < 3 ? 0 : len <= 4 ? 1 : len <= 7 ? 2 : 3; }
+
+  // Every typed word has to be close to some word in the name, either the
+  // whole word or its start (so "pleas" and "plesant" both find Pleasant).
+  function fuzzyScore(n, key) {
+    const words = n.split(' ');
+    const typed = key.split(' ').filter(Boolean);
+    if (!typed.length || typed.join('').length < 3) return 0;
+    let total = 0;
+    for (const t of typed) {
+      let best = Infinity;
+      for (const w of words) {
+        if (w.startsWith(t)) { best = 0; break; }
+        best = Math.min(best, editDistance(t, w));
+        if (w.length > t.length) best = Math.min(best, editDistance(t, w.slice(0, t.length)));
+      }
+      if (best > typoAllowance(t.length)) return 0;
+      total += best;
+    }
+    return Math.max(1, FUZZY_MAX - total * 5);
+  }
+  function searchCourts(q) {
+    const town = currentTown();
+    const pool = town ? courtsInTown(town) : allCourts();
+    const key = norm(q);
+    if (!key) return town ? pool.slice(0, 8) : [];
+    return pool.map(c => ({ c, s: matchScore(c, key) }))
+      .filter(x => x.s > 0)
+      .sort((a, b) => b.s - a.s || b.c.maxCourts - a.c.maxCourts)
+      .slice(0, 8)
+      .map(x => x.c);
+  }
+  // Exact name match: within the chosen town, or anywhere if it's unambiguous.
+  function findExistingByName(town, name) {
+    const key = norm(name);
+    if (!key) return null;
+    if (town) {
+      const id = courtId(town, name);
+      return courtsInTown(town).find(c => norm(c.name) === key || c.id === id) || null;
+    }
+    const hits = allCourts().filter(c => norm(c.name) === key);
+    return hits.length === 1 ? hits[0] : null;
+  }
+
+  function setSliderMax(max) {
+    if (max === sliderMax) return;   // don't clobber the slider on every keystroke
+    sliderMax = max;
+    resetSlider(max);
+  }
+
+  // Work out what the typed text means and update the form to match.
+  function resolveTyped() {
+    const town = currentTown();
+    const q = typedName();
+    const match = findExistingByName(town, q);
+    pickedId = match ? match.id : null;
+    if (match && !town) document.getElementById('town-select').value = match.town;
+    const isNew = !match && q && town;
+    document.getElementById('other-wrap').hidden = !isNew;
+    setSliderMax(match ? getCourt(match.id).maxCourts : isNew ? otherCourtCount : 10);
+    renderPicked();
+  }
+
+  function renderPicked() {
+    const el = document.getElementById('picked');
+    const hint = document.getElementById('court-hint');
+    const town = currentTown();
+    const q = typedName();
+    if (town) {
+      const inTown = courtsInTown(town);
+      hint.textContent = `${inTown.length} locations · ${inTown.reduce((s, c) => s + c.maxCourts, 0)} courts listed in ${town}`;
+    } else {
+      hint.textContent = 'Type a park, club, or neighborhood name.';
+    }
+    if (pickedId) {
+      const c = getCourt(pickedId);
+      el.innerHTML = `<div class="picked"><span>✓ ${esc(c.name)} · ${esc(c.town)}</span><span>${c.maxCourts} ${plural(c.maxCourts)}</span></div>`;
+    } else if (q && town) {
+      // Before adding a new place, offer close spellings of existing ones.
+      const close = searchCourts(q).slice(0, 3);
+      const didYouMean = close.length
+        ? `<span class="dym">Did you mean ${close.map(c => `<button type="button" class="dym-btn" data-id="${esc(c.id)}">${esc(c.name)}</button>`).join(' or ')}?</span>`
+        : '';
+      el.innerHTML = `<div class="picked new"><span>New location: “${esc(q)}” in ${esc(town)}. Everyone will see it once you submit.${didYouMean}</span></div>`;
+    } else if (q && searchCourts(q).length) {
+      el.innerHTML = '';
+    } else if (q) {
+      el.innerHTML = `<div class="picked new"><span>Not on the list yet. Pick the town above to add “${esc(q)}”.</span></div>`;
+    } else {
+      el.innerHTML = '';
+    }
+  }
+
+  function renderSuggest(open) {
+    const box = document.getElementById('court-suggest');
+    const input = document.getElementById('court-input');
+    const town = currentTown();
+    const q = typedName();
+    if (!open || (!q && !town)) {
+      box.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    const hits = searchCourts(q);
+    const key = norm(q);
+    const items = hits.map(c => ({ id: c.id, label: c.name, fuzzy: key && matchScore(c, key) <= FUZZY_MAX,
+      meta: (town ? '' : c.town + ' · ') + c.maxCourts + ' ' + plural(c.maxCourts) }));
+    if (q && town && !hits.some(c => norm(c.name) === norm(q))) {
+      items.push({ add: true, label: `+ Add “${q}”`, meta: 'new in ' + town });
+    }
+    if (suggestIdx >= items.length) suggestIdx = items.length - 1;
+    const firstFuzzy = items.findIndex(it => it.fuzzy);
+    box.innerHTML = items.length
+      ? items.map((it, i) => (i === firstFuzzy
+            ? `<div class="suggest-label">${i === 0 ? 'No exact match. Did you mean' : 'Similar names'}</div>` : '') + `
+          <button type="button" class="suggest-item${it.add ? ' add' : ''}${i === suggestIdx ? ' active' : ''}"
+                  role="option" data-i="${i}" ${it.add ? 'data-add="1"' : `data-id="${esc(it.id)}"`}>
+            <span>${esc(it.label)}</span><span class="meta">${esc(it.meta)}</span>
+          </button>`).join('')
+      : `<div class="suggest-empty">No courts match. Pick a town above to add “${esc(q)}”.</div>`;
+    box.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  function pickCourt(id) {
+    const c = getCourt(id);
+    if (!c) return;
+    document.getElementById('town-select').value = c.town;
+    document.getElementById('court-input').value = c.name;
+    suggestIdx = -1;
+    resolveTyped();
+    renderSuggest(false);
+  }
+
+  function chooseSuggestion(btn) {
+    if (!btn) return;
+    if (btn.dataset.id) pickCourt(btn.dataset.id);
+    else { suggestIdx = -1; resolveTyped(); renderSuggest(false); }
+  }
+
+  function onTownSelected() {
+    resolveTyped();
+    if (document.activeElement === document.getElementById('court-input')) renderSuggest(true);
+  }
+
+  (function wireCourtInput() {
+    const input = document.getElementById('court-input');
+    const box = document.getElementById('court-suggest');
+    input.addEventListener('input', () => { suggestIdx = -1; resolveTyped(); renderSuggest(true); });
+    input.addEventListener('focus', () => renderSuggest(true));
+    input.addEventListener('blur', () => renderSuggest(false));
+    input.addEventListener('keydown', e => {
+      const btns = box.hidden ? [] : [...box.querySelectorAll('.suggest-item')];
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!btns.length) { renderSuggest(true); return; }
+        e.preventDefault();
+        const step = e.key === 'ArrowDown' ? 1 : -1;
+        suggestIdx = (suggestIdx + step + btns.length) % btns.length;
+        renderSuggest(true);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (suggestIdx >= 0 && btns[suggestIdx]) chooseSuggestion(btns[suggestIdx]);
+        else renderSuggest(false);
+      } else if (e.key === 'Escape') {
+        renderSuggest(false);
+      }
+    });
+    // mousedown keeps focus in the input so blur doesn't close the list first
+    box.addEventListener('mousedown', e => e.preventDefault());
+    box.addEventListener('click', e => chooseSuggestion(e.target.closest('.suggest-item')));
+    document.getElementById('picked').addEventListener('click', e => {
+      const b = e.target.closest('.dym-btn');
+      if (b) pickCourt(b.dataset.id);
+    });
+  })();
+
+  function changeOtherCourts(delta) {
+    otherCourtCount = Math.min(20, Math.max(1, otherCourtCount + delta));
+    document.getElementById('other-courts').textContent = otherCourtCount;
+    setSliderMax(otherCourtCount);
+  }
+
+  function resetSlider(max) {
+    const slider = document.getElementById('busy-slider');
+    slider.max = max;
+    slider.value = Math.round(max / 2);
+    updateSlider(slider);
+  }
+  function updateSlider(el) {
+    const v = el.value, max = el.max;
+    el.style.setProperty('--fill', (v / max * 100).toFixed(0) + '%');
+    document.getElementById('busy-val').textContent = `${v} / ${max}`;
+  }
+  function changeCount(delta) {
+    rotationCount = Math.min(99, Math.max(0, rotationCount + delta));
+    document.getElementById('rotation-count').textContent = rotationCount;
+  }
+  function selectChip(el) {
+    document.querySelectorAll('#wait-chips .chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedWait = el.textContent;
+  }
+
+  async function submitReport() {
+    if (saving) return;
+    resolveTyped();
+    const typed = typedName().slice(0, 60);
+    if (!typed) {
+      showToast('Type the name of the courts you’re at');
+      document.getElementById('court-input').focus();
+      return;
+    }
+    const town = currentTown();
+    if (!town) { showToast(`Pick the town “${typed}” is in`); return; }
+    const busyLevel = parseInt(document.getElementById('busy-slider').value);
+    const note = document.getElementById('notes').value.trim().slice(0, 280);
+
+    let id, newPlace = null;
+    if (pickedId) {
+      id = pickedId;
+    } else {
+      id = courtId(town, typed);
+      newPlace = { name: typed, town, maxCourts: otherCourtCount, createdAt: Date.now() };
+    }
+
+    const court = getCourt(id);
+    const prev = reports[id];
+    const max = newPlace ? newPlace.maxCourts : court.maxCourts;
+    const report = {
+      busyLevel: Math.min(busyLevel, max),
+      rotation: rotationCount,
+      wait: selectedWait || 'Unknown',
+      note: note || (prev && isLive({ reportedAt: prev.reportedAt }) ? prev.note || '' : ''),
+      reportedAt: Date.now()
+    };
+
+    saving = true;
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      if (db) {
+        if (newPlace) await db.doc('places/' + id).set(newPlace);
+        await db.doc('reports/' + id).set(report);
+      }
+      // Apply locally too, so the dashboard updates before the snapshot arrives
+      // (and so the local fallback works at all).
+      if (newPlace && !places.some(p => p.id === id)) {
+        places.push({ id, name: newPlace.name, town, maxCourts: newPlace.maxCourts, access: 'public',
+          info: 'Added by a player · court count not yet verified', userAdded: true });
+      }
+      reports[id] = report;
+    } catch (e) {
+      showToast(dbErrorMessage(e));
+      return;
+    } finally {
+      saving = false;
+      btn.disabled = false;
+      btn.textContent = '✅ Submit Court Report';
+    }
+
+    lastReportedId = id;
+    document.getElementById('success-text').textContent = syncMode === 'live'
+      ? 'Everyone checking PickleCheck can see it now. Reports stay up for 3 hours.'
+      : 'Shared reports aren’t available here, so this report only shows in this tab.';
+    document.getElementById('form-wrap').hidden = true;
+    document.getElementById('success-msg').hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  function viewReportedCourt() {
+    const c = lastReportedId && getCourt(lastReportedId);
+    resetForm();
+    if (!c) { switchTab('towns'); return; }
+    setTab('towns');
+    selectedTown = c.town;
+    prepareTownView(c.town);
+    openCourtDetail(c.id);
+  }
+
+  function resetForm() {
+    document.getElementById('form-wrap').hidden = false;
+    document.getElementById('success-msg').hidden = true;
+    document.getElementById('town-select').value = '';
+    document.getElementById('court-input').value = '';
+    otherCourtCount = 4;
+    document.getElementById('other-courts').textContent = otherCourtCount;
+    sliderMax = null;
+    suggestIdx = -1;
+    resolveTyped();
+    renderSuggest(false);
+    rotationCount = 0;
+    document.getElementById('rotation-count').textContent = 0;
+    document.querySelectorAll('#wait-chips .chip').forEach(c => c.classList.remove('selected'));
+    document.getElementById('notes').value = '';
+    selectedWait = '';
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  NAVIGATION
+  // ══════════════════════════════════════════════════════
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function setTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  }
+  function switchTab(tab) {
+    setTab(tab);
+    currentDetailId = null;
+    if (tab === 'towns') {
+      selectedTown = null;
+      renderTowns();
+      showView('view-towns');
+    } else {
+      if (!document.getElementById('success-msg').hidden) resetForm();
+      showView('view-report');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  STATUS HELPERS
+  // ══════════════════════════════════════════════════════
+  function getStatusKey(level, max) {
+    const pct = level / max;
+    if (pct < 0.4) return 'quiet';
+    if (pct < 0.75) return 'moderate';
+    return 'busy';
+  }
+  function getStatus(level, max) {
+    return {
+      quiet:    { label: 'Quiet',    cls: 'status-quiet',    fillCls: 'fill-low' },
+      moderate: { label: 'Moderate', cls: 'status-moderate', fillCls: 'fill-med' },
+      busy:     { label: 'Busy',     cls: 'status-busy',     fillCls: 'fill-high' }
+    }[getStatusKey(level, max)];
+  }
+  function accessTag(c) {
+    const base = c.access === 'private'
+      ? '<span class="access-tag access-private">🔒 Private / Member</span>'
+      : '<span class="access-tag access-public">🏛️ Public</span>';
+    return base + (c.userAdded ? '<span class="access-tag access-added">Player-added</span>' : '');
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  STEP 1 — TOWN PICKER
+  // ══════════════════════════════════════════════════════
+  function renderTowns() {
+    const list = document.getElementById('town-list');
+    list.innerHTML = TOWNS.map(t => {
+      const inTown = courtsInTown(t.name).map(c => getCourt(c.id));
+      const totalCourts = inTown.reduce((s, c) => s + c.maxCourts, 0);
+      const reported = inTown.filter(isLive);
+      let pills;
+      if (reported.length === 0) {
+        pills = '<span class="mini-pill pill-none">No live reports right now</span>';
+      } else {
+        const tally = { quiet: 0, moderate: 0, busy: 0 };
+        reported.forEach(c => { tally[getStatusKey(c.busyLevel, c.maxCourts)]++; });
+        pills = [
+          tally.quiet ? `<span class="mini-pill pill-quiet">🟢 ${tally.quiet} quiet</span>` : '',
+          tally.moderate ? `<span class="mini-pill pill-moderate">🟡 ${tally.moderate} moderate</span>` : '',
+          tally.busy ? `<span class="mini-pill pill-busy">🔴 ${tally.busy} busy</span>` : ''
+        ].join('');
+      }
+      return `
+        <button type="button" class="town-card" data-town="${esc(t.name)}">
+          <span class="town-icon">${t.icon}</span>
+          <span class="town-body">
+            <span class="town-title" style="display:block">${esc(t.name)}, NC</span>
+            <span class="town-meta" style="display:block">${inTown.length} locations · ${totalCourts} courts</span>
+            <span class="town-pills">${pills}</span>
+          </span>
+          <span class="town-arrow">›</span>
+        </button>`;
+    }).join('');
+    list.querySelectorAll('.town-card').forEach(card => {
+      card.addEventListener('click', () => openTown(card.dataset.town));
+    });
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  STEP 2 — COURTS IN THE CHOSEN TOWN
+  // ══════════════════════════════════════════════════════
+  function prepareTownView(town) {
+    selectedTown = town;
+    currentFilter = 'all';
+    currentAccess = 'all';
+    document.querySelectorAll('#access-filter .filter-chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+    document.querySelectorAll('#court-filter .filter-chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+    document.getElementById('courts-town-title').textContent = town + ', NC';
+    renderDashboard();
+  }
+  function openTown(town) {
+    prepareTownView(town);
+    showView('view-courts');
+  }
+  function backToTowns() {
+    selectedTown = null;
+    renderTowns();
+    showView('view-towns');
+  }
+
+  function matchesFilters(c) {
+    if (currentAccess !== 'all' && c.access !== currentAccess) return false;
+    if (currentFilter === 'live') return isLive(c);
+    if (currentFilter !== 'all') {
+      if (!isLive(c)) return false;
+      if (getStatusKey(c.busyLevel, c.maxCourts) !== currentFilter) return false;
+    }
+    return true;
+  }
+
+  function statsBlock(c, pct) {
+    return `
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val">${c.rotation}</div><div class="stat-lbl">In Rotation</div></div>
+        <div class="stat-box"><div class="stat-val">${esc(c.wait)}</div><div class="stat-lbl">Est. Wait</div></div>
+        <div class="stat-box"><div class="stat-val">${pct}%</div><div class="stat-lbl">Full</div></div>
+      </div>`;
+  }
+  function meterBlock(c, status, pct) {
+    return `
+      <div class="meter-wrap">
+        <div class="meter-top"><span>Courts in use</span><span>${c.busyLevel} / ${c.maxCourts}</span></div>
+        <div class="meter-bar"><div class="meter-fill ${status.fillCls}" style="width:${pct}%"></div></div>
+      </div>`;
+  }
+
+  function courtCardHTML(c) {
+    const meta = `📍 ${esc(c.location)} · ${c.maxCourts} ${plural(c.maxCourts)}`;
+    if (!isLive(c)) {
+      const hint = c.reportedAt
+        ? `Last report was ${timeAgo(c)}, too old to trust. Tap to add a fresh one.`
+        : 'No reports yet. Tap for details, or be the first to report.';
+      return `
+        <button type="button" class="court-card" data-id="${esc(c.id)}">
+          <div class="court-header">
+            <div>
+              <div class="court-name">${esc(c.name)}</div>
+              <div class="court-location">${meta}</div>
+              ${accessTag(c)}
+            </div>
+            <div class="status-badge status-unreported">No Reports</div>
+          </div>
+          <div class="card-hint">${hint}</div>
+        </button>`;
+    }
+    const status = getStatus(c.busyLevel, c.maxCourts);
+    const pct = Math.round(c.busyLevel / c.maxCourts * 100);
+    const stale = isStale(c);
+    return `
+      <button type="button" class="court-card${stale ? ' is-stale' : ''}" data-id="${esc(c.id)}">
+        <div class="court-header">
+          <div>
+            <div class="court-name">${esc(c.name)}</div>
+            <div class="court-location">${meta}</div>
+            ${accessTag(c)}
+          </div>
+          <div class="status-badge ${status.cls}">${status.label}</div>
+        </div>
+        ${stale ? '<div class="stale-banner">⚠️ This report is getting old. Check before you drive over.</div>' : ''}
+        ${meterBlock(c, status, pct)}
+        ${statsBlock(c, pct)}
+        ${c.note ? `<div class="note-line">💬 ${esc(c.note)}</div>` : ''}
+        <div class="timestamp">🕒 ${timeAgo(c)}</div>
+      </button>`;
+  }
+
+  function renderDashboard() {
+    if (!selectedTown) return;
+    const inTown = courtsInTown(selectedTown).map(c => getCourt(c.id));
+    const total = inTown.reduce((s, c) => s + c.maxCourts, 0);
+    document.getElementById('courts-town-sub').textContent =
+      `${inTown.length} locations · ${total} courts. Tap any location for full details.`;
+
+    // Live reports first, freshest on top; unreported keep directory order.
+    const matches = inTown.filter(matchesFilters).sort((a, b) => {
+      const la = isLive(a), lb = isLive(b);
+      if (la !== lb) return la ? -1 : 1;
+      if (la) return b.reportedAt - a.reportedAt;
+      return 0;
+    });
+
+    const liveCount = inTown.filter(isLive).length;
+    const syncNote = syncMode === 'local' ? ' · this device only' : '';
+    document.getElementById('last-updated').textContent = (liveCount
+      ? `${liveCount} live report${liveCount === 1 ? '' : 's'}`
+      : 'No live reports') + ` · reports expire after ${EXPIRE_MINS / 60} hrs${syncNote}`;
+
+    const list = document.getElementById('court-list');
+    const countEl = document.getElementById('result-count');
+    if (matches.length === 0) {
+      countEl.textContent = '';
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔍</div>
+          <p>No courts in ${esc(selectedTown)} match these filters right now.</p>
+        </div>`;
+      return;
+    }
+    const shownCourts = matches.reduce((s, c) => s + c.maxCourts, 0);
+    countEl.textContent = `Showing ${matches.length} location${matches.length === 1 ? '' : 's'} · ${shownCourts} courts`;
+    list.innerHTML = matches.map(courtCardHTML).join('');
+    list.querySelectorAll('.court-card').forEach(card => {
+      card.addEventListener('click', () => openCourtDetail(card.dataset.id));
+    });
+  }
+
+  function filterCourts(el, filter) {
+    document.querySelectorAll('#court-filter .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    currentFilter = filter;
+    renderDashboard();
+  }
+  function filterAccess(el, access) {
+    document.querySelectorAll('#access-filter .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    currentAccess = access;
+    renderDashboard();
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  STEP 3 — COURT DETAIL PAGE
+  // ══════════════════════════════════════════════════════
+  function openCourtDetail(id) {
+    const c = getCourt(id);
+    if (!c) return;
+    currentDetailId = id;
+    document.getElementById('detail-back').textContent = `← Back to ${c.town} courts`;
+    renderCourtDetail(c);
+    showView('view-court-detail');
+  }
+  function backToCourts() {
+    currentDetailId = null;
+    if (!selectedTown) { backToTowns(); return; }
+    renderDashboard();
+    showView('view-courts');
+  }
+  function goReportForCourt(id) {
+    const c = getCourt(id);
+    if (!c) return;
+    setTab('report');
+    resetForm();
+    pickCourt(c.id);
+    currentDetailId = null;
+    showView('view-report');
+  }
+
+  function renderCourtDetail(c) {
+    const container = document.getElementById('court-detail-content');
+    const heroMeta = `📍 ${esc(c.location)} · ${c.maxCourts} ${plural(c.maxCourts)}`;
+    const infoBlock = `
+      <div class="info-row"><span class="info-key">Total courts</span><span class="info-val">${c.maxCourts}</span></div>
+      <div class="info-row"><span class="info-key">Town</span><span class="info-val">${esc(c.town)}</span></div>
+      <div class="info-row"><span class="info-key">Access</span><span class="info-val">${c.access === 'private' ? '🔒 Private / Member' : '🏛️ Public'}</span></div>
+      ${c.info ? `<div class="info-row"><span class="info-key">Details</span><span class="info-val">${esc(c.info)}</span></div>` : ''}`;
+    const reportBtn = (label) =>
+      `<button class="submit-btn" data-report="${esc(c.id)}">${label}</button>`;
+
+    if (!isLive(c)) {
+      const line = c.reportedAt
+        ? `The last report on ${esc(c.name)} was ${timeAgo(c)},<br/>too old to be useful. Add a fresh one?`
+        : `No one has reported on ${esc(c.name)} yet.<br/>Be the first to let other players know what it's like.`;
+      container.innerHTML = `
+        <div class="card">
+          <div class="detail-hero">
+            <div>
+              <div class="detail-name">${esc(c.name)}</div>
+              <div class="detail-location">${heroMeta}</div>
+              ${accessTag(c)}
+            </div>
+            <div class="status-badge status-unreported">No Reports</div>
+          </div>
+          <div class="unreported-block">
+            <div class="icon"><svg class="big-icon" viewBox="0 0 64 64" role="img" aria-label="Pickleball paddle and ball"><use href="#paddleBall"/></svg></div>
+            <p>${line}</p>
+            ${reportBtn('📋 Report This Court')}
+          </div>
+        </div>
+        <div class="card"><div class="card-title">Court info</div>${infoBlock}</div>`;
+    } else {
+      const status = getStatus(c.busyLevel, c.maxCourts);
+      const pct = Math.round(c.busyLevel / c.maxCourts * 100);
+      const stale = isStale(c);
+      container.innerHTML = `
+        <div class="card${stale ? ' is-stale' : ''}">
+          <div class="detail-hero">
+            <div>
+              <div class="detail-name">${esc(c.name)}</div>
+              <div class="detail-location">${heroMeta}</div>
+              ${accessTag(c)}
+            </div>
+            <div class="status-badge ${status.cls}">${status.label}</div>
+          </div>
+          ${stale ? `<div class="stale-banner">⚠️ This report is over ${FRESH_MINS} minutes old. Courts fill up fast, so treat it as a rough guide.</div>` : ''}
+          ${meterBlock(c, status, pct)}
+          ${statsBlock(c, pct)}
+          ${c.note ? `<div class="detail-note-box">💬 ${esc(c.note)}</div>` : ''}
+          <div class="timestamp">🕒 ${timeAgo(c)}</div>
+        </div>
+        <div class="card"><div class="card-title">Court info</div>${infoBlock}</div>
+        ${reportBtn('📋 Update This Court’s Status')}`;
+    }
+    container.querySelectorAll('[data-report]').forEach(b => {
+      b.addEventListener('click', () => goReportForCourt(b.dataset.report));
+    });
+  }
+
+  // ── TOAST ──
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  // Re-render whatever is on screen (new data arrived, or the clock moved).
+  function rerender() {
+    if (document.getElementById('view-towns').classList.contains('active')) renderTowns();
+    else if (document.getElementById('view-courts').classList.contains('active')) renderDashboard();
+    else if (document.getElementById('view-court-detail').classList.contains('active') && currentDetailId) {
+      const c = getCourt(currentDetailId);
+      if (c) renderCourtDetail(c);
+    }
+    // A location someone else just added may now match what's typed.
+    resolveTyped();
+    const input = document.getElementById('court-input');
+    if (document.activeElement === input) renderSuggest(true);
+  }
+  // "12 min ago" counts up and reports go stale/expire on their own.
+  setInterval(rerender, 30000);
+
+  // ── INIT ──
+  setSync('connecting');
+  onTownSelected();
+  renderTowns();
+  connectDb();
+</script>
