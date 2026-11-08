@@ -401,9 +401,8 @@
     .tab-btn { font-size: 0.78rem; }
     .sync-text { display: none; }
     /* Keep the warning visible on phones: the dot alone says nothing. */
-    .sync.local .sync-text { display: inline; }
+    .sync.local .sync-text { display: inline; font-size: 0.7rem; line-height: 1.15; }
     .sync.local { max-width: 46vw; }
-    .sync.local .sync-text { font-size: 0.7rem; line-height: 1.15; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
@@ -682,12 +681,17 @@
   //  SHARED STATE
   //  reports/<courtId>  → latest report for that location
   //  places/<courtId>   → locations added by players
-  //  Both live in the artifact's shared db, so every player
-  //  sees every report. Without db, falls back to this tab only.
+  //  Stored in the Claude artifact's shared db when running as an
+  //  artifact, in Firebase Firestore on the public website, and
+  //  only in this tab when neither is available.
   // ══════════════════════════════════════════════════════
+  const FIREBASE_CONFIG = {"apiKey": "AIzaSyCj6yHuBHxZ2eiO99FVFQudJ_r3tI3b9wQ", "authDomain": "picklecheck-33c7a.firebaseapp.com", "projectId": "picklecheck-33c7a", "storageBucket": "picklecheck-33c7a.firebasestorage.app", "messagingSenderId": "268010554755", "appId": "1:268010554755:web:97a8fa12c98ffad681e2b6"};   // tools/build_site.py fills this in for the public site
+  const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const WAIT_OPTIONS = ['No wait', '~5 min', '~10 min', '~20 min', '30+ min', 'Unknown'];
+
   let reports = {};   // courtId → report body
   let places = [];    // player-added locations
-  let db = null;
+  let backend = null; // { save(id, report, newPlace) } once connected
   let syncMode = 'connecting';  // 'connecting' | 'live' | 'local'
 
   function allCourts() { return DIRECTORY.concat(places); }
@@ -719,50 +723,110 @@
     el.title = labels[mode][1];
   }
 
+  // Both backends hand over [id, data] pairs; anything malformed is dropped.
+  function applyReports(rows) {
+    const next = {};
+    rows.forEach(([id, v]) => {
+      if (v && typeof v.reportedAt === 'number' && typeof v.busyLevel === 'number') next[id] = v;
+    });
+    reports = next;
+    rerender();
+  }
+  function applyPlaces(rows) {
+    const known = new Set(DIRECTORY.map(c => c.id));
+    places = rows.map(([id, v]) => {
+      v = v || {};
+      return {
+        id,
+        name: String(v.name || '').slice(0, 60),
+        town: String(v.town || ''),
+        maxCourts: Math.min(20, Math.max(1, parseInt(v.maxCourts) || 1)),
+        access: 'public',
+        info: 'Added by a player · court count not yet verified',
+        userAdded: true
+      };
+    }).filter(p => p.name && TOWNS.some(t => t.name === p.town) && !known.has(p.id));
+    rerender();
+  }
+
+  function goLocal() {
+    backend = null;
+    setSync('local');
+    rerender();
+  }
+
   async function connectDb() {
+    backend = (await connectClaudeDb()) || (await connectFirestore());
+    if (backend) { setSync('live'); rerender(); }
+    else goLocal();
+  }
+
+  // Inside a Claude artifact: the artifact's own shared database.
+  async function connectClaudeDb() {
+    let db = null;
     try {
       db = window.claude && window.claude.use ? await window.claude.use('db') : null;
     } catch (e) { db = null; }
-    if (!db) { setSync('local'); rerender(); return; }
-    setSync('live');
-    db.collection('reports').onSnapshot(snap => {
-      const next = {};
-      snap.docs.forEach(d => {
-        const v = d.data();
-        if (v && typeof v.reportedAt === 'number' && typeof v.busyLevel === 'number') next[d.id] = v;
-      });
-      reports = next;
-      rerender();
-    }, onDbError);
-    db.collection('places').onSnapshot(snap => {
-      const known = new Set(DIRECTORY.map(c => c.id));
-      places = snap.docs.map(d => {
-        const v = d.data() || {};
-        return {
-          id: d.id,
-          name: String(v.name || '').slice(0, 60),
-          town: String(v.town || ''),
-          maxCourts: Math.min(20, Math.max(1, parseInt(v.maxCourts) || 1)),
-          access: 'public',
-          info: 'Added by a player · court count not yet verified',
-          userAdded: true
-        };
-      }).filter(p => p.name && TOWNS.some(t => t.name === p.town) && !known.has(p.id));
-      rerender();
-    }, onDbError);
+    if (!db) return null;
+    const onError = e => {
+      if (e && ['revoked', 'not_granted', 'capability_disabled'].includes(e.code)) goLocal();
+    };
+    db.collection('reports').onSnapshot(snap => applyReports(snap.docs.map(d => [d.id, d.data()])), onError);
+    db.collection('places').onSnapshot(snap => applyPlaces(snap.docs.map(d => [d.id, d.data()])), onError);
+    return {
+      async save(id, report, newPlace) {
+        if (newPlace) await db.doc('places/' + id).set(newPlace);
+        await db.doc('reports/' + id).set(report);
+      }
+    };
   }
 
-  function onDbError(e) {
-    if (e && (e.code === 'revoked' || e.code === 'not_granted' || e.code === 'capability_disabled')) {
-      db = null;
-      setSync('local');
+  // On the public website: Firebase Firestore. The security rules in
+  // firestore.rules decide what a write may contain; times come from the
+  // server so nobody can backdate or future-date a report.
+  async function connectFirestore() {
+    if (!FIREBASE_CONFIG) return null;
+    try {
+      const [{ initializeApp }, fs] = await Promise.all([
+        import(FIREBASE_SDK + 'firebase-app.js'),
+        import(FIREBASE_SDK + 'firebase-firestore.js')
+      ]);
+      const db = fs.getFirestore(initializeApp(FIREBASE_CONFIG));
+      const rows = snap => snap.docs.map(d => {
+        const v = d.data({ serverTimestamps: 'estimate' });
+        if (v.reportedAt && v.reportedAt.toMillis) v.reportedAt = v.reportedAt.toMillis();
+        return [d.id, v];
+      });
+      fs.onSnapshot(fs.collection(db, 'reports'), snap => applyReports(rows(snap)), goLocal);
+      fs.onSnapshot(fs.collection(db, 'places'), snap => applyPlaces(rows(snap)), goLocal);
+      return {
+        async save(id, report, newPlace) {
+          if (newPlace) {
+            // Someone may have added the same place a moment ago; places can't be overwritten.
+            const ref = fs.doc(db, 'places', id);
+            if (!(await fs.getDoc(ref)).exists()) {
+              await fs.setDoc(ref, {
+                name: newPlace.name, town: newPlace.town, maxCourts: newPlace.maxCourts,
+                createdAt: fs.serverTimestamp()
+              });
+            }
+          }
+          await fs.setDoc(fs.doc(db, 'reports', id), {
+            busyLevel: report.busyLevel, rotation: report.rotation, wait: report.wait,
+            note: report.note, reportedAt: fs.serverTimestamp()
+          });
+        }
+      };
+    } catch (e) {
+      return null;
     }
   }
 
   function dbErrorMessage(e) {
     const code = e && e.code;
     if (code === 'invalid_argument') return 'You have view-only access. Ask the owner for Contributor access to post reports.';
-    if (code === 'quota_exceeded') return 'The report store is full. Ask the owner to clear old locations.';
+    if (code === 'permission-denied') return 'That report was rejected. Check the details and try again.';
+    if (code === 'quota_exceeded' || code === 'resource-exhausted') return 'The report store is full right now. Try again later.';
     if (code === 'resource_exhausted') return 'Too many reports at once. Wait a minute and try again.';
     return 'Couldn’t save the report. Check your connection and try again.';
   }
@@ -1090,10 +1154,7 @@
     btn.disabled = true;
     btn.textContent = 'Saving…';
     try {
-      if (db) {
-        if (newPlace) await db.doc('places/' + id).set(newPlace);
-        await db.doc('reports/' + id).set(report);
-      }
+      if (backend) await backend.save(id, report, newPlace);
       // Apply locally too, so the dashboard updates before the snapshot arrives
       // (and so the local fallback works at all).
       if (newPlace && !places.some(p => p.id === id)) {
