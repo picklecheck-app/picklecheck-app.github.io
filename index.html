@@ -400,6 +400,10 @@
     .card { padding: 18px; }
     .tab-btn { font-size: 0.78rem; }
     .sync-text { display: none; }
+    /* Keep the warning visible on phones: the dot alone says nothing. */
+    .sync.local .sync-text { display: inline; }
+    .sync.local { max-width: 46vw; }
+    .sync.local .sync-text { font-size: 0.7rem; line-height: 1.15; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
